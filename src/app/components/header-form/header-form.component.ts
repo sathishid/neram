@@ -5,6 +5,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { map, Observable, of, startWith, forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
 
 @Component({
   selector: 'app-header-form',
@@ -18,14 +20,16 @@ export class HeaderFormComponent implements OnInit {
   titleControl: FormControl;
   categoryControl: FormControl;
   
-  taskKeys: string[];
+  taskJob: Job[];
+  taskKeyFilteredOptions: Observable<Job[]>;
   taskTitles:  string[];
   taskCategories:  string[];
-  taskKeyFilteredOptions: Observable<string[]>;
 
-  constructor(private fb: FormBuilder) {
+  
+
+  constructor(private fb: FormBuilder,private jobService: JobService) {
     this.taskKeyFilteredOptions = of([]);
-    this.taskKeys = [];
+    this.taskJob = [];
     this.taskTitles = [];
     this.taskCategories = [];
     this.keyControl = new FormControl('');
@@ -36,6 +40,7 @@ export class HeaderFormComponent implements OnInit {
       titleControl: this.titleControl,
       categoryControl: this.categoryControl
     });
+
   }
 
   ngOnInit() {
@@ -44,20 +49,21 @@ export class HeaderFormComponent implements OnInit {
       titles: this.getTaskTitles(),
       categories: this.getTaskCategories()
     }).subscribe(({ keys, titles, categories }) => {
-      this.taskKeys = keys;
+      this.taskJob = keys;
       this.taskTitles = titles;
       this.taskCategories = categories;
     });
 
     this.taskKeyFilteredOptions = this.keyControl.valueChanges.pipe(
       startWith(''),
+      map(value => typeof value === 'string' ? value : value.key),  
       map(value => this._taskKeyFilter(value))
     );
   }
 
-  private _taskKeyFilter(value: any): string[] {
+  private _taskKeyFilter(value: string): Job[] {
     const filterValue = value.toLowerCase();
-    return this.taskKeys.filter(option => option.toLowerCase().includes(filterValue));
+    return this.taskJob.filter(option => option.key.toLowerCase().includes(filterValue));
   }
 
   getTaskCategories(): Observable<string[]> {
@@ -68,8 +74,10 @@ export class HeaderFormComponent implements OnInit {
     return of(['Title 1', 'Title 2', 'Title 3']);
   }
 
-  getTaskKeys(): Observable<string[]> {
-    // Replace with your actual implementation to fetch task keys
-    return of(['Key 1', 'Key 2', 'Key 3']);
+  getTaskKeys(): Observable<Job[]> {
+    return this.jobService.getTaskKeys();
+  }
+  displayJobKey(job: Job): string {
+    return job && job.key ? job.key : '';
   }
 }
