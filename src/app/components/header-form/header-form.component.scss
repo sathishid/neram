@@ -1,0 +1,16 @@
+
+.flex-container {
+    display: flex;                     /* Enable flexbox */
+    justify-content: space-between;    /* Space items to the ends */
+    align-items: center;               /* Center items vertically */
+    padding: 10px;                     /* Optional padding */
+    background-color: #f0f0f0;        /* Optional background color */
+    width: 100%;                       /* Full width of the browser window */
+}
+
+.form-container {
+    display: flex;                     /* Enable flexbox for form fields */
+    justify-content: center;           /* Center the form fields */
+    flex-grow: 1;                      /* Allow the form container to grow */
+    margin: 0 20px;                   /* Optional margin for spacing */
+}

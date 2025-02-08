@@ -1,0 +1,17 @@
+<div class="flex-container">
+    <div class="left-item">நேரம்</div>
+    <div class="form-container">
+        <form [formGroup]="headerFormGroup">
+            <input type="text" placeholder="Key" formControlName="keyControl" matInput [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete">
+                @for (key of taskKeyFilteredOptions | async; track key) {
+                <mat-option [value]="key">{{key}}</mat-option>
+                }
+            </mat-autocomplete>
+            
+
+        </form>
+
+    </div>
+    <div class="right-item">Right Item</div>
+</div>
