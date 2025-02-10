@@ -1,35 +1,7 @@
 <div class="flex-container">
     <div class="left-item">நேரம்</div>
     <div class="form-container">
-        <form [formGroup]="headerFormGroup">
-            <input type="text" placeholder="Key" formControlName="keyControl" matInput [matAutocomplete]="autoKey">
-            <mat-autocomplete #autoKey="matAutocomplete" [displayWith]="displayJobKey">
-                @for (job of taskKeyFilteredOptions | async; track job) {
-                <mat-option [value]="job">{{job.key}}</mat-option>
-                }
-            </mat-autocomplete>
-
-            <input type="text" placeholder="Title" formControlName="titleControl" matInput [matAutocomplete]="autoTitle">
-            <mat-autocomplete #autoTitle="matAutocomplete" [displayWith]="displayJobTitle">
-                @for (jobObj of taskTitleFilteredOptions | async; track jobObj) {
-                <mat-option [value]="jobObj">{{jobObj.title}}</mat-option>
-                }
-            </mat-autocomplete>
-
-            <input type="text" placeholder="Category" formControlName="categoryControl" matInput [matAutocomplete]="autoCategory">
-            <mat-autocomplete #autoCategory="matAutocomplete" [displayWith]="displayCategory">
-                @for (category of  taskCategoriesOptions | async; track category) {
-                <mat-option [value]="category">{{category.name}}</mat-option>
-                }
-            </mat-autocomplete>
-
-            <label>{{ time | date:'HH:mm:ss' }}</label>
-            <button mat-mini-fab aria-label="Start/Stop" (click)="toggleTimer()">
-                <mat-icon>{{ isRunning ? 'stop' : 'play_arrow' }}</mat-icon>
-              </button>
-
-        </form>
-
+       <a-job/>
     </div>
     <div class="right-item">Right Item</div>
 </div>

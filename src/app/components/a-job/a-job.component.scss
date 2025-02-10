@@ -1,0 +1,6 @@
+.form-container {
+    display: flex;                     /* Enable flexbox for form fields */
+    justify-content: center;           /* Center the form fields */
+    flex-grow: 1;                      /* Allow the form container to grow */
+    margin: 0 20px;                   /* Optional margin for spacing */
+}
