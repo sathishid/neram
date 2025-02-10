@@ -1,11 +1,12 @@
-
 .flex-container {
     display: flex;                     /* Enable flexbox */
     justify-content: space-between;    /* Space items to the ends */
     align-items: center;               /* Center items vertically */
     padding: 10px;                     /* Optional padding */
     background-color: #f0f0f0;        /* Optional background color */
-    width: 100%;                       /* Full width of the browser window */
+    width: 100vw;                      /* Full width of the viewport */
+    max-width: 100%;                   /* Prevent overflow */
+    overflow: hidden;                  /* Hide overflow */
 }
 
 .form-container {
@@ -13,4 +14,11 @@
     justify-content: center;           /* Center the form fields */
     flex-grow: 1;                      /* Allow the form container to grow */
     margin: 0 20px;                   /* Optional margin for spacing */
+    flex-basis: 60%;                   /* Flexible width */
+}
+
+.right-item {
+    flex-shrink: 0;                    /* Prevent shrinking */
+    max-width: 100%;                   /* Ensure it stays within the container */
+    flex-basis: 20%;                   /* Set a basis for the right item */
 }
