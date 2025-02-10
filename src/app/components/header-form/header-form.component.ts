@@ -7,6 +7,8 @@ import { map, Observable, of, startWith, forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
+import { CategoryService } from '../../services/category.service';
+import { Category } from '../../models/category.model';
 
 @Component({
   selector: 'app-header-form',
@@ -19,17 +21,22 @@ export class HeaderFormComponent implements OnInit {
   keyControl: FormControl;
   titleControl: FormControl;
   categoryControl: FormControl;
-  
-  taskJob: Job[];
+
+  jobs: Job[];
   taskKeyFilteredOptions: Observable<Job[]>;
-  taskTitles:  string[];
-  taskCategories:  string[];
+  taskTitles: string[];
+  taskCategories: Category[];
+  taskTitleFilteredOptions: Observable<Job[]>;
+  taskCategoriesOptions: Observable<Category[]>;
 
-  
 
-  constructor(private fb: FormBuilder,private jobService: JobService) {
+  constructor(private fb: FormBuilder,
+    private jobService: JobService,
+    private categoryService: CategoryService) {
     this.taskKeyFilteredOptions = of([]);
-    this.taskJob = [];
+    this.taskTitleFilteredOptions = of([]);
+    this.taskCategoriesOptions = of([]);
+    this.jobs = [];
     this.taskTitles = [];
     this.taskCategories = [];
     this.keyControl = new FormControl('');
@@ -44,40 +51,73 @@ export class HeaderFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    forkJoin({
-      keys: this.getTaskKeys(),
-      titles: this.getTaskTitles(),
-      categories: this.getTaskCategories()
-    }).subscribe(({ keys, titles, categories }) => {
-      this.taskJob = keys;
-      this.taskTitles = titles;
-      this.taskCategories = categories;
-    });
+    this.jobService
+      .getJobs()
+      .subscribe(jobs => {
+        this.jobs = jobs;
+        console.log(this.jobs);
+      });
 
-    this.taskKeyFilteredOptions = this.keyControl.valueChanges.pipe(
-      startWith(''),
-      map(value => typeof value === 'string' ? value : value.key),  
-      map(value => this._taskKeyFilter(value))
-    );
+    this.categoryService
+      .getCategories()
+      .subscribe(categories => this.taskCategories = categories);
+
+    this.taskKeyFilteredOptions = this.keyControl
+      .valueChanges.pipe(
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value.key),
+        map(value => this._taskKeyFilter(value))
+      );
+
+    this.taskTitleFilteredOptions = this.titleControl
+      .valueChanges.pipe(
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value.title),
+        map(title => this.__taskTitleFilter(title))
+      )
+
+    this.taskCategoriesOptions = this.categoryControl
+      .valueChanges.pipe(
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value.name),
+        map(value => this.__taskCategoryFilter(value))
+      )
   }
 
   private _taskKeyFilter(value: string): Job[] {
     const filterValue = value.toLowerCase();
-    return this.taskJob.filter(option => option.key.toLowerCase().includes(filterValue));
+    let fioteredItems = this.jobs.filter(option => option
+      .key
+      .toLowerCase()
+      .includes(filterValue));
+      return fioteredItems;
   }
 
-  getTaskCategories(): Observable<string[]> {
-    return of(['Category 1', 'Category 2', 'Category 3']);
-  }
-
-  getTaskTitles(): Observable<string[]> {
-    return of(['Title 1', 'Title 2', 'Title 3']);
-  }
-
-  getTaskKeys(): Observable<Job[]> {
-    return this.jobService.getTaskKeys();
-  }
   displayJobKey(job: Job): string {
     return job && job.key ? job.key : '';
   }
+  private __taskTitleFilter(value: string): Job[] {
+    const filterValue = value.toLowerCase();
+    let filteredItems= this.jobs.filter(jobObj => jobObj.title
+      .toLowerCase()
+      .includes(filterValue));
+      return filteredItems;
+  }
+  displayJobTitle(job: Job): string {
+    return job && job.title ? job.title : '';
+  }
+
+  private __taskCategoryFilter(value: string): Category[] {
+    const filterValue = value.toLowerCase();
+    return this.taskCategories.filter(option => option
+      .name
+      .toLowerCase()
+      .includes(filterValue));
+  }
+
+  displayCategory(category: Category): string {
+    return category && category.name ? category.name : '';
+  }
+
+
 }
