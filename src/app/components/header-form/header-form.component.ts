@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { map, Observable, of, startWith, forkJoin } from 'rxjs';
+import { map, Observable, of, startWith, forkJoin, interval } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
@@ -12,15 +13,24 @@ import { Category } from '../../models/category.model';
 
 @Component({
   selector: 'app-header-form',
-  imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatAutocompleteModule],
+  imports: [CommonModule, ReactiveFormsModule,
+     MatFormFieldModule, MatAutocompleteModule,
+     MatButtonModule,
+     MatIconModule],
   templateUrl: './header-form.component.html',
   styleUrl: './header-form.component.scss'
 })
 export class HeaderFormComponent implements OnInit {
+  
   headerFormGroup: FormGroup;
   keyControl: FormControl;
   titleControl: FormControl;
   categoryControl: FormControl;
+  currentJob : Job;
+
+  time: Date = new Date(0, 0, 0, 0, 0, 0); // Initialize time to 00:00:00
+  interval: any;
+  isRunning: boolean = false; // Track whether the timer is running
 
   jobs: Job[];
   taskKeyFilteredOptions: Observable<Job[]>;
@@ -33,6 +43,8 @@ export class HeaderFormComponent implements OnInit {
   constructor(private fb: FormBuilder,
     private jobService: JobService,
     private categoryService: CategoryService) {
+    this.currentJob = {} as Job;
+    
     this.taskKeyFilteredOptions = of([]);
     this.taskTitleFilteredOptions = of([]);
     this.taskCategoriesOptions = of([]);
@@ -47,7 +59,7 @@ export class HeaderFormComponent implements OnInit {
       titleControl: this.titleControl,
       categoryControl: this.categoryControl
     });
-
+    this.time = new Date(0, 0, 0, 0, 0, 0);
   }
 
   ngOnInit() {
@@ -119,5 +131,29 @@ export class HeaderFormComponent implements OnInit {
     return category && category.name ? category.name : '';
   }
 
+  toggleTimer() {
+    if (this.isRunning) {
+      this.stopTask(); // Stop the timer if it's running
+    } else {
+      this.startTask(); // Start the timer if it's not running
+    }
+  }
+
+  startTask() {
+    this.isRunning = true; // Set the timer state to running
+    this.time = new Date(0, 0, 0, 0, 0, 0); // Reset time to 00:00:00
+    this.interval = setInterval(() => {
+      // Create a new Date object to trigger change detection
+      this.time = new Date(this.time.getTime() + 1000); // Add 1 second
+    }, 1000); // Update every 1000ms (1 second)
+  }
+
+  stopTask() {
+    this.isRunning = false; // Set the timer state to stopped
+    if (this.interval) {
+      clearInterval(this.interval); // Stop the interval
+      this.interval = null; // Clear the interval reference
+    }
+  }
 
 }

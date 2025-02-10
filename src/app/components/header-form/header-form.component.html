@@ -22,7 +22,11 @@
                 <mat-option [value]="category">{{category.name}}</mat-option>
                 }
             </mat-autocomplete>
-            
+
+            <label>{{ time | date:'HH:mm:ss' }}</label>
+            <button mat-mini-fab aria-label="Start/Stop" (click)="toggleTimer()">
+                <mat-icon>{{ isRunning ? 'stop' : 'play_arrow' }}</mat-icon>
+              </button>
 
         </form>
 
