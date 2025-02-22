@@ -21,7 +21,10 @@
             }
         </mat-autocomplete>
 
-        <label>{{ time | date:'HH:mm:ss' }}</label>
+        <!-- Timer edit box -->
+        <input type="text" placeholder="hh:mm:ss" formControlName="timerControl" matInput (blur)="onTimerBlur()">
+
+        <label>{{ endTime | date:'HH:mm:ss' }}</label>
         <button mat-mini-fab aria-label="Start/Stop" (click)="toggleTimer()">
             <mat-icon>{{ isRunning ? 'stop' : 'play_arrow' }}</mat-icon>
           </button>

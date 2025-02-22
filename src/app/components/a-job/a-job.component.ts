@@ -27,9 +27,10 @@ export class AJobComponent implements OnInit {
   keyControl: FormControl;
   titleControl: FormControl;
   categoryControl: FormControl;
+  timerControl: FormControl;
   currentJob : Job;
 
-  time: Date = new Date(0, 0, 0, 0, 0, 0); // Initialize time to 00:00:00
+  endTime: Date = new Date(0, 0, 0, 0, 0, 0); // Initialize time to 00:00:00
   interval: any;
   isRunning: boolean = false; // Track whether the timer is running
 
@@ -55,12 +56,14 @@ export class AJobComponent implements OnInit {
     this.keyControl = new FormControl('');
     this.titleControl = new FormControl('');
     this.categoryControl = new FormControl('');
+    this.timerControl = new FormControl('');
     this.headerFormGroup = this.fb.group({
       keyControl: this.keyControl,
       titleControl: this.titleControl,
-      categoryControl: this.categoryControl
+      categoryControl: this.categoryControl,
+      timerControl: this.timerControl
     });
-    this.time = new Date(0, 0, 0, 0, 0, 0);
+    this.endTime = new Date(0, 0, 0, 0, 0, 0);
   }
 
   ngOnInit() {
@@ -95,6 +98,8 @@ export class AJobComponent implements OnInit {
         map(value => typeof value === 'string' ? value : value.name),
         map(value => this.__taskCategoryFilter(value))
       )
+
+   
   }
 
   private _taskKeyFilter(value: string): Job[] {
@@ -142,10 +147,10 @@ export class AJobComponent implements OnInit {
 
   startTask() {
     this.isRunning = true; // Set the timer state to running
-    this.time = new Date(0, 0, 0, 0, 0, 0); // Reset time to 00:00:00
+    this.endTime = new Date(0, 0, 0, 0, 0, 0); // Reset time to 00:00:00
     this.interval = setInterval(() => {
       // Create a new Date object to trigger change detection
-      this.time = new Date(this.time.getTime() + 1000); // Add 1 second
+      this.endTime = new Date(this.endTime.getTime() + 1000); // Add 1 second
     }, 1000); // Update every 1000ms (1 second)
   }
 
@@ -155,5 +160,19 @@ export class AJobComponent implements OnInit {
       clearInterval(this.interval); // Stop the interval
       this.interval = null; // Clear the interval reference
     }
+  }
+
+  onTimerBlur() {
+    const value = this.timerControl.value;
+    if (value && value.length === 6) {
+      this.timerControl.setValue(this.formatTime(value));
+    }
+  }
+
+  formatTime(value: string): string {
+    const hours = value.substring(0, 2);
+    const minutes = value.substring(2, 4);
+    const seconds = value.substring(4, 6);
+    return `${hours}:${minutes}:${seconds}`;
   }
 }
