@@ -6,15 +6,25 @@ import { Job } from '../models/job.model';
   providedIn: 'root'
 })
 export class JobService {
+  //Simulate DB data here for now
+  jobs: Job[] ;
 
-  constructor() { }
+  constructor() {
+    this.jobs= [];
+   }
     getJobs(): Observable<Job[]> {
-      // Replace with your actual implementation to fetch task keys
-      return of([
-        { id: 1, key: 'Job 1',title: 'Job 1 Title', category: 'Category 1' },
-        { id: 2, key: 'Job 2',title: 'Job 2 Title', category: 'Category 2' },
-        { id: 3, key: 'Job 3',title: 'Job 3 Title', category: 'Category 3' }
-      ] as Job[]);
+      return of(this.jobs);
     }
+
+    saveJob(job: Job): Observable<Job> {
+      this.jobs.push(job);
+      return of(job);
+    }
+
+    editJob(id:number,job: Job): Observable<Job> {
+      this.jobs[id]=job;
+      return of(job);
+    }
+
 }
   
