@@ -10,6 +10,9 @@ import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
 import { CategoryService } from '../../services/category.service';
 import { Category } from '../../models/category.model';
+import { loadJobs, saveJob } from '../../store/job.actions';
+import { JobState } from '../../store/job.reducer';
+import { Store } from '@ngrx/store';
 
 
 @Component({
@@ -44,7 +47,8 @@ export class AJobComponent implements OnInit {
 
   constructor(private fb: FormBuilder,
     private jobService: JobService,
-    private categoryService: CategoryService) {
+    private categoryService: CategoryService,
+   private store: Store<{ jobState: JobState}> ) {
     this.currentJob = {} as Job;
     
     this.taskKeyFilteredOptions = of([]);
@@ -160,6 +164,19 @@ export class AJobComponent implements OnInit {
       clearInterval(this.interval); // Stop the interval
       this.interval = null; // Clear the interval reference
     }
+    this.saveJob();
+
+  }
+  saveJob() {
+    const job: Job = {
+      id: this.jobs.length + 1,
+      key: this.keyControl.value,
+      title: this.titleControl.value,
+      category: this.categoryControl.value
+    };
+    console.log('Dispatching saveJob action', job);
+    this.store.dispatch(saveJob({ job }));
+    console.log("Action Dispatched...")
   }
 
   onTimerBlur() {
