@@ -4,7 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { map, Observable, of, startWith } from 'rxjs';
+import { map, Observable, of, startWith, take } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { JobService } from '../../services/job.service';
@@ -46,14 +46,14 @@ export class AJobComponent implements OnInit {
     private fb: FormBuilder,
     private jobService: JobService,
     private categoryService: CategoryService,
-    private store: Store<{ jobState: JobState }>
+    private store: Store<{ jobs: JobState }> // Update this line
   ) {
     this.currentJob = {} as Job;
 
     this.taskKeyFilteredOptions = of([]);
     this.taskTitleFilteredOptions = of([]);
     this.taskCategoriesOptions = of([]);
-    this.jobs$ = this.store.select(state => state.jobState.jobs);
+    this.jobs$ = this.store.select(state => state.jobs.jobs); // Update this line
     this.taskTitles = [];
     this.taskCategories = [];
     this.keyControl = new FormControl('');
@@ -71,21 +71,21 @@ export class AJobComponent implements OnInit {
   ngOnInit() {
     this.store.dispatch(loadJobs());
 
-    this.jobs$.subscribe(jobs => {
+    this.jobs$.pipe(take(1)).subscribe(jobs => {
       this.taskKeyFilteredOptions = this.keyControl.valueChanges.pipe(
-        startWith(''),
-        map(value => typeof value === 'string' ? value : value.key),
-        map(value => this._taskKeyFilter(value, jobs))
+      startWith(''),
+      map(value => typeof value === 'string' ? value : value.key),
+      map((value: string) => this._taskKeyFilter(value, jobs as Job[]))
       );
 
       this.taskTitleFilteredOptions = this.titleControl.valueChanges.pipe(
-        startWith(''),
-        map(value => typeof value === 'string' ? value : value.title),
-        map(title => this.__taskTitleFilter(title, jobs))
+      startWith(''),
+      map(value => typeof value === 'string' ? value : value.title),
+      map(title => this.__taskTitleFilter(title, jobs))
       );
     });
 
-    this.categoryService.getCategories().subscribe(categories => this.taskCategories = categories);
+    this.categoryService.getCategories().pipe(take(1)).subscribe(categories => this.taskCategories = categories);
 
     this.taskCategoriesOptions = this.categoryControl.valueChanges.pipe(
       startWith(''),
