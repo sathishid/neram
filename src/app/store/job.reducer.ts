@@ -8,13 +8,8 @@ export interface JobState {
 
 export const initialState: JobState = 
 {
-  jobs: [
-    {
-      key: '1',
-      title: 'Job 1', category: 'Category 1',
-      id: 0
-    },
-  ]};
+  jobs: []
+};
 
 export const jobReducer = createReducer(
   initialState,
