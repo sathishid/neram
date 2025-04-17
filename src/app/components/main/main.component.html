@@ -1,3 +1,15 @@
-<a-job/>
-no of jobs is {{jobLength}}
-{{jobs | json}}
+
+    
+    @if (!jobs || jobLength ===0) {
+        No jobs available.
+    }@else {
+        no of jobs is {{jobLength}}
+        
+        @for (aJob of jobs; track $index) {
+            <div class="job-container">
+                <a-job [header]="false" [job]="aJob"></a-job>
+            </div>
+        }
+    }
+    
+

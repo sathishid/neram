@@ -5,4 +5,5 @@ export interface Job {
     category: string;
     startTime: Date;
     endTime: Date;
+    spentTime: Date;
 }

@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, input, Input, OnChanges, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { map, Observable, of, startWith, take } from 'rxjs';
+import { map, Observable, of, startWith, take, throwError } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { JobService } from '../../services/job.service';
@@ -21,18 +21,20 @@ import { JobState } from '../../store/job.reducer';
   templateUrl: './a-job.component.html',
   styleUrls: ['./a-job.component.scss']
 })
-export class AJobComponent implements OnInit {
+export class AJobComponent implements OnInit, OnChanges {
   headerFormGroup: FormGroup;
   keyControl: FormControl;
   titleControl: FormControl;
   categoryControl: FormControl;
   jobStartedTimeControl: FormControl;
-  currentJob: Job;
+  @Input("job") currentJob: Job | undefined = undefined
+  @Input("header") isHeader: boolean = false;;
 
   startTime: Date = new Date(); // Initialize start time to current date and time
-  spentTime: Date = new Date(0, 0, 0, 0, 0, 0); // Initialize end time to 00:00:00
+  spentTime: Date = new Date(); // Initialize end time to 00:00:00
+
   timerInterval: any;
-  
+
   isRunning: boolean = false; // Track whether the timer is running
 
   jobs$: Observable<Job[]>;
@@ -48,8 +50,9 @@ export class AJobComponent implements OnInit {
     private categoryService: CategoryService,
     private store: Store<{ jobs: JobState }> // Update this line
   ) {
-    this.currentJob = {} as Job;
 
+    this.setTime();
+    
     this.taskKeyFilteredOptions = of([]);
     this.taskTitleFilteredOptions = of([]);
     this.taskCategoriesOptions = of([]);
@@ -73,15 +76,15 @@ export class AJobComponent implements OnInit {
 
     this.jobs$.pipe(take(1)).subscribe(jobs => {
       this.taskKeyFilteredOptions = this.keyControl.valueChanges.pipe(
-      startWith(''),
-      map(value => typeof value === 'string' ? value : value.key),
-      map((value: string) => this._taskKeyFilter(value, jobs as Job[]))
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value.key),
+        map((value: string) => this._taskKeyFilter(value, jobs as Job[]))
       );
 
       this.taskTitleFilteredOptions = this.titleControl.valueChanges.pipe(
-      startWith(''),
-      map(value => typeof value === 'string' ? value : value.title),
-      map(title => this.__taskTitleFilter(title, jobs))
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value.title),
+        map(title => this.__taskTitleFilter(title, jobs))
       );
     });
 
@@ -92,6 +95,14 @@ export class AJobComponent implements OnInit {
       map(value => typeof value === 'string' ? value : value.name),
       map(value => this.__taskCategoryFilter(value))
     );
+  }
+  ngOnChanges() {
+    if(this.currentJob) {
+      this.keyControl.setValue(this.currentJob.key);
+      this.titleControl.setValue(this.currentJob.title);
+      this.categoryControl.setValue(this.currentJob.category);
+      this.jobStartedTimeControl.setValue(this.formatTime(this.currentJob.startTime.toISOString().substring(11, 19)));
+    }
   }
 
   private _taskKeyFilter(value: string, jobs: Job[]): Job[] {
@@ -122,6 +133,10 @@ export class AJobComponent implements OnInit {
   }
 
   toggleTimer() {
+    if(!this.isHeader) {
+      throwError(() => 'Not implemented');
+    }
+    // Toggle the timer state
     if (this.isRunning) {
       this.stopTask(); // Stop the timer if it's running
     } else {
@@ -130,17 +145,25 @@ export class AJobComponent implements OnInit {
   }
 
   startTask() {
+    if (this.isHeader) {
+      this.startHeaderJob();
+    } else {
+      throwError(() => 'Not implemented');
+    }
+
+  }
+  startHeaderJob() {
     this.isRunning = true; // Set the timer state to running
-    this.startTime = new Date(); // Set the start time to the current date and time
-    this.spentTime = new Date(0, 0, 0, 0, 0, 0); // Reset end time to 00:00:00
+
+   this.setTime();
+    // Start the timer interval
     this.timerInterval = setInterval(() => {
-      // Create a new Date object to trigger change detection
-      this.spentTime = new Date(this.spentTime.getTime() + 1000); // Add 1 second
-    }, 1000); // Update every 1000ms (1 second)
-    //update the jobStartedTimeControl value to current time
-    this.jobStartedTimeControl.setValue(this.formatTime(this.startTime.toLocaleTimeString
-      ('en-US', { hour12: false })));
-    
+      // Increment spentTime by 1 second
+      this.spentTime = new Date(this.spentTime.getTime() + 1000);
+    }, 1000);
+
+    // Format and set the jobStartedTimeControl value
+    this.jobStartedTimeControl.setValue(this.formatTime(this.startTime.toISOString().substring(11, 19)));
   }
 
   stopTask() {
@@ -149,12 +172,16 @@ export class AJobComponent implements OnInit {
       clearInterval(this.timerInterval); // Stop the interval
       this.timerInterval = null; // Clear the interval reference
     }
+
+    this.saveJob();
     //update the jobStartedTimeControl value to zero
     this.jobStartedTimeControl.setValue('0')
     //reset the start time to zero
     this.startTime = new Date(0, 0, 0, 0, 0, 0);
-    
-    
+    //clear the spent time
+    this.spentTime = new Date(0, 0, 0, 0, 0, 0);
+
+
   }
 
   // Format the time when the timer control loses focus
@@ -167,22 +194,43 @@ export class AJobComponent implements OnInit {
 
   formatTime(value: string): string {
     const hours = value.substring(0, 2);
-    const minutes = value.substring(2, 4);
-    const seconds = value.substring(4, 6);
+    const minutes = value.substring(3, 5);
+    const seconds = value.substring(6, 8);
     return `${hours}:${minutes}:${seconds}`;
   }
 
   saveJob() {
-    this.jobs$.subscribe(jobs => {
-      const job: Job = {
-        id: jobs.length + 1,
+    // Reset the date portion of spentTime to a base date (e.g., 1970-01-01)
+    const spentTimeInMilliseconds = this.spentTime.getHours() * 3600000 +
+                                    this.spentTime.getMinutes() * 60000 +
+                                    this.spentTime.getSeconds() * 1000;
+
+  // Calculate endTime by adding only the time portion of spentTime to startTime
+    const endTime = new Date(this.startTime.getTime() + spentTimeInMilliseconds);
+
+    const job: Job = {
+        id: 1,
         key: this.keyControl.value,
         title: this.titleControl.value,
         category: this.categoryControl.value,
-        startTime: this.startTime, // Use the startTime managed by the component
-        endTime: this.spentTime // Use the endTime managed by the component
-      };
-      this.store.dispatch(saveJob({ job }));
-    }).unsubscribe();
+        startTime: this.startTime,
+        endTime: endTime,
+        spentTime: this.spentTime
+    };
+
+    console.log('startTime:', this.startTime);
+    console.log('spentTime:', this.spentTime);
+    console.log('endTime:', endTime);
+
+    this.store.dispatch(saveJob({ job }));
+  }
+
+  setTime() {
+ // Set the current date and time in the "Asia/Kolkata" timezone
+ const currentDate = new Date();
+ this.startTime = new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000); // Adjust for UTC offset
+ // Set the spentTime to 00:00:00 with the current date
+ this.spentTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0, 0, 0);
+
   }
 }

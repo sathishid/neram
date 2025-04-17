@@ -21,8 +21,8 @@
             }
         </mat-autocomplete>
 
-        <!-- start time edit box -->
-        <!-- <input type="text" placeholder="hh:mm:ss" formControlName="jobStartedTimeControl" matInput (blur)="onTimerBlur()"> -->
+        <!-- Timer edit box -->
+        <input type="text" placeholder="hh:mm:ss" formControlName="jobStartedTimeControl" matInput (blur)="onTimerBlur()">
 
         <label>{{ spentTime | date:'HH:mm:ss' }}</label>
         <button mat-mini-fab aria-label="Start/Stop" (click)="toggleTimer()">
